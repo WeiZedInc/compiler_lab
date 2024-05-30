@@ -84,7 +84,6 @@ using utils::nl;
 
 // Declare the nonterminals types
 
-// %type <Var *> var;
 %type <VarDecl *> param;
 %type <std::vector<VarDecl *>> params nonemptyparams;
 %type <Decl *> decl funcDecl varDecl;
@@ -102,8 +101,13 @@ using utils::nl;
 %%
 
 // Declare precedence rules
-
 %nonassoc FUNCTION VAR TYPE DO OF ASSIGN;
+%left OR;
+%left AND;
+%left EQ NEQ;
+%left LT LE GT GE;
+%left PLUS MINUS;
+%left TIMES DIVIDE;
 %left UMINUS;
 
 // Declare grammar rules and production actions
@@ -162,8 +166,6 @@ negExpr: MINUS expr
   %prec UMINUS
 ;
 
-/*opExp: expr op expr*/
-
 opExpr: expr PLUS expr   { $$ = new BinaryOperator(@2, $1, $3, o_plus); }
       | expr MINUS expr  { $$ = new BinaryOperator(@2, $1, $3, o_minus); }
       | expr TIMES expr  { $$ = new BinaryOperator(@2, $1, $3, o_times); }
@@ -179,8 +181,12 @@ opExpr: expr PLUS expr   { $$ = new BinaryOperator(@2, $1, $3, o_plus); }
                             new IfThenElse(@3, $3, new IntegerLiteral(nl, 1), new IntegerLiteral(nl, 0)),
                             new IntegerLiteral(nl, 0));
       }
+      | expr OR expr    {
+        $$ = new IfThenElse(@2, $1,
+                            new IfThenElse(@3, $3, new IntegerLiteral(nl, 1), new IntegerLiteral(nl, 0)),
+                            new IntegerLiteral(nl, 0));
+      }
 ;
-
 
 assignExpr: ID ASSIGN expr
   { $$ = new Assign(@2, new Identifier(@1, $1), $3); }
