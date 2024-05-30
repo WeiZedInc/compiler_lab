@@ -117,10 +117,6 @@ using utils::nl;
 program: expr { driver.result_ast = $1; }
 ;
 
-decl: varDecl { $$ = $1; }
-   | funcDecl { $$ = $1; }
-;
-
 expr: stringExpr { $$ = $1; }
    | seqExpr { $$ = $1; }
    | var { $$ = $1; }
@@ -138,6 +134,8 @@ expr: stringExpr { $$ = $1; }
 
 ifExpr: IF expr THEN expr ELSE expr
   { $$ = new IfThenElse(@1, $2, $4, $6); }
+  | IF expr THEN expr
+  { $$ = new IfThenElse(@1, $2, $4, new Sequence(nl, {})); }
 ;
 
 varDecl: VAR ID typeannotation ASSIGN expr
@@ -146,6 +144,10 @@ varDecl: VAR ID typeannotation ASSIGN expr
 
 funcDecl: FUNCTION ID LPAREN params RPAREN typeannotation EQ expr
   { $$ = new FunDecl(@1, $2, $6, $4, $8); }
+;
+
+decl: varDecl { $$ = $1; }
+   | funcDecl { $$ = $1; }
 ;
 
 /* Exprs */
