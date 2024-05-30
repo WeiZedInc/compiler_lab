@@ -24,6 +24,7 @@ static std::string string_buffer;
 lineterminator  \r|\n|\r\n
 blank           [ \t\f]
 id              [a-zA-Z][_0-9a-zA-Z]*
+integer         0|([1-9][0-9]*)
 
  /* Declare two start conditions (sub-automate states) to handle
     strings and comments */
@@ -86,6 +87,23 @@ var      return yy::tiger_parser::make_VAR(loc);
 
  /* Identifiers */
 {id}       return yy::tiger_parser::make_ID(Symbol(yytext), loc);
+
+ /* Integers */
+{integer} {
+    // Check for leading zeros (except single zero)
+    if (yytext[0] == '0' && yyleng > 1) {
+        utils::error(loc, "numbers with leading zeros are not allowed");
+    } else {
+        // Convert to integer
+        errno = 0;
+        long value = strtol(yytext, nullptr, 10);
+        if (errno == ERANGE || value > TIGER_INT_MAX) {
+            utils::error(loc, "integer value out of range");
+        } else {
+            return yy::tiger_parser::make_INT(value, loc);
+        }
+    }
+}
 
  /* Strings */
 \" {BEGIN(STRING); string_buffer.clear();}
