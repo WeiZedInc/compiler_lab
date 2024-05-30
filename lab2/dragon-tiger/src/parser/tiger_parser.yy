@@ -114,8 +114,9 @@ using utils::nl;
 
 %start program;
 
-program: expr { driver.result_ast = $1; }
-;
+program
+  : expr { driver.result_ast = std::unique_ptr<Expr>($1); }
+  ;
 
 expr: stringExpr { $$ = $1; }
    | seqExpr { $$ = $1; }
