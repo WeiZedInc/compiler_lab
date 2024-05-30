@@ -1,0 +1,10 @@
+let
+    var a := 1
+    var b := 0
+in
+    if a | b then
+        print("a or b is true")
+    else
+        print("a or b is false")
+end
+

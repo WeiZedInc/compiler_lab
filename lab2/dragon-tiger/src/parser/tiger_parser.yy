@@ -1,6 +1,6 @@
 %skeleton "lalr1.cc"
 %defines
-%define parser_class_name {tiger_parser}
+%define api.parser.class {tiger_parser}
 
 %define api.token.constructor
 %define api.value.type variant
@@ -89,7 +89,7 @@ using utils::nl;
 %type <Decl *> decl funcDecl varDecl;
 %type <std::vector<Decl *>> decls;
 %type <Expr *> expr stringExpr seqExpr callExpr opExpr negExpr
-            assignExpr whileExpr forExpr breakExpr letExpr var intExpr;
+            assignExpr whileExpr forExpr breakExpr letExpr var intExpr ifExpr;
 
 %type <std::vector<Expr *>> exprs nonemptyexprs;
 %type <std::vector<Expr *>> arguments nonemptyarguments;
@@ -132,7 +132,12 @@ expr: stringExpr { $$ = $1; }
    | forExpr { $$ = $1; }
    | breakExpr { $$ = $1; }
    | letExpr { $$ = $1; }
-   | intExpr { $$ = $1; } // Add this line to accept intExpr
+   | intExpr { $$ = $1; }
+   | ifExpr { $$ = $1; }
+;
+
+ifExpr: IF expr THEN expr ELSE expr
+  { $$ = new IfThenElse(@1, $2, $4, $6); }
 ;
 
 varDecl: VAR ID typeannotation ASSIGN expr
@@ -183,8 +188,8 @@ opExpr: expr PLUS expr   { $$ = new BinaryOperator(@2, $1, $3, o_plus); }
       }
       | expr OR expr    {
         $$ = new IfThenElse(@2, $1,
-                            new IfThenElse(@3, $3, new IntegerLiteral(nl, 1), new IntegerLiteral(nl, 0)),
-                            new IntegerLiteral(nl, 0));
+                            new IntegerLiteral(nl, 1),
+                            new IfThenElse(@3, $3, new IntegerLiteral(nl, 1), new IntegerLiteral(nl, 0)));
       }
 ;
 
